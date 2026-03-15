@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f5f2;--bg2:#ffffff;--bg3:#f0ede8;--bg4:#e8e4df;
+  --border:#e0dbd4;--border2:#c8c0b8;
+  --text:#1a1614;--text2:#6b6058;--text3:#a09888;
+  --accent:#b07830;--accent2:#8a5c20;
+  --red:#c04030;--green:#3a7a3a;--blue:#3060a0;--purple:#7050a0;
+  --font-display:'DM Serif Display',serif;
+  --font-body:'DM Sans',sans-serif;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:14px}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:10}
+.nav-logo{font-family:var(--font-display);font-size:20px;color:var(--accent);letter-spacing:.02em}
+.nav-tabs{display:flex;gap:4px}
+.nav-tab{padding:7px 16px;border-radius:8px;border:1px solid transparent;background:none;color:var(--text2);font-family:var(--font-body);font-size:13px;cursor:pointer;transition:all .2s}
+.nav-tab:hover{color:var(--text);background:var(--bg3)}
+.nav-tab.active{background:var(--bg3);color:var(--accent);border-color:var(--border2)}
+.page{display:none;padding:24px;animation:fadeIn .25s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* DASHBOARD */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.stat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.stat-val{font-family:var(--font-display);font-size:28px;color:var(--text)}
+.stat-sub{font-size:11px;color:var(--text2);margin-top:4px}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px}
+.panel-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:16px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bar-label{width:62px;font-size:12px;color:var(--text2);text-align:right;flex-shrink:0}
+.bar-track{flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
+.bar-count{font-size:12px;color:var(--text2);min-width:20px;text-align:right}
+.season-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.season-pill{padding:10px 14px;border-radius:8px;border:1px solid var(--border2);text-align:center}
+.season-icon{font-size:18px}.season-name{font-size:11px;color:var(--text2);margin-top:2px}
+.season-count{font-size:16px;font-weight:500;color:var(--text);margin-top:2px}
+.unworn-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg3);border-radius:8px;margin-bottom:8px}
+.unworn-name{font-size:13px;color:var(--text)}.unworn-date{font-size:11px;color:var(--text3)}
+.unworn-badge{font-size:10px;padding:3px 8px;border-radius:20px;background:#fde8e4;color:var(--red)}
+
+/* WARDROBE */
+.filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.filter-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border2);background:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:var(--font-body);transition:all .15s}
+.filter-btn:hover{border-color:var(--accent2);color:var(--accent)}
+.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:500}
+.search-box{margin-left:auto;padding:7px 14px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:13px;font-family:var(--font-body);outline:none;width:180px}
+.search-box:focus{border-color:var(--accent2)}
+.clothes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.cloth-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:all .2s;position:relative}
+.cloth-card:hover{border-color:var(--border2);box-shadow:0 4px 12px rgba(0,0,0,.06);transform:translateY(-2px)}
+.cloth-card.favorited{border-color:var(--accent2)}
+.cloth-thumb{width:100%;height:120px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.cloth-thumb img{width:100%;height:100%;object-fit:cover}
+.cloth-thumb-emoji{font-size:36px}
+.fav-btn{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.9);border:1px solid var(--border2);border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all .15s;z-index:2}
+.fav-btn:hover{border-color:var(--accent)}
+.fav-btn.on{background:#fef3e0;border-color:var(--accent)}
+.cloth-body{padding:12px 14px}
+.cloth-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cloth-brand{font-size:11px;color:var(--text3);margin-bottom:8px}
+.cloth-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.tag{font-size:10px;padding:2px 7px;border-radius:10px;border:1px solid var(--border2);color:var(--text2)}
+.tag.color-tag{display:flex;align-items:center;gap:3px}
+.cdot{width:7px;height:7px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.1)}
+.cloth-bottom{display:flex;align-items:center;justify-content:space-between}
+.cloth-price{font-size:12px;color:var(--accent2)}
+.wear-row{display:flex;align-items:center;gap:5px}
+.wear-btn{font-size:10px;padding:2px 8px;border-radius:6px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;font-family:var(--font-body);transition:all .15s}
+.wear-btn:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.wear-count{font-size:11px;color:var(--text2)}
+
+/* UPLOAD */
+.upload-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+.upload-panel{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px}
+.upload-zone{border:1.5px dashed var(--border2);border-radius:10px;padding:36px 20px;text-align:center;cursor:pointer;transition:all .2s}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent2);background:rgba(176,120,48,.04)}
+.upload-icon-big{font-size:32px;margin-bottom:10px}
+.upload-hint{font-size:13px;color:var(--text2)}
+.upload-hint2{font-size:11px;color:var(--text3);margin-top:4px}
+#file-input{display:none}
+.preview-img{width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid var(--border);margin-top:16px;display:none}
+.analyze-btn{width:100%;margin-top:16px;padding:12px;border-radius:10px;border:1px solid var(--accent2);background:rgba(176,120,48,.08);color:var(--accent);font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer;transition:all .2s}
+.analyze-btn:hover{background:rgba(176,120,48,.15)}
+.analyze-btn:disabled{opacity:.4;cursor:not-allowed}
+.spinner-row{display:none;flex-direction:column;align-items:center;gap:6px;padding:16px}
+.spin-inner{display:flex;align-items:center;gap:10px;color:var(--text2);font-size:13px}
+.spin{width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.analysis-step{font-size:11px;color:var(--text3);min-height:14px}
+
+/* RESULT PANEL */
+.result-panel{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;display:none}
+.result-title{font-family:var(--font-display);font-size:20px;color:var(--accent);margin-bottom:4px}
+.result-sub{font-size:12px;color:var(--text3);margin-bottom:16px}
+.meta-rows{background:var(--bg3);border-radius:8px;padding:12px 14px;margin-bottom:16px}
+.meta-row-r{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px}
+.meta-row-r:last-child{border-bottom:none}
+.mk{color:var(--text2)}.mv{font-weight:500}
+.result-items{display:flex;flex-direction:column;gap:14px;margin-bottom:18px}
+.ri{background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.ri-header{padding:12px 14px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.ri-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.ri-name{font-size:14px;font-weight:500;color:var(--text)}
+.ri-price{font-size:13px;color:var(--accent2);font-weight:500;white-space:nowrap;margin-left:8px}
+.ri-attrs{display:flex;flex-wrap:wrap;gap:5px}
+.ri-tag{font-size:11px;padding:3px 9px;border-radius:10px;background:var(--bg3);color:var(--text2);border:1px solid var(--border2)}
+.ri-tag.code-tag{font-family:monospace;color:var(--blue);border-color:#b0c8e8;background:#eef3fa}
+.ri-tag.brand-tag{color:var(--accent2);border-color:#d8b880;background:#fdf4e4}
+.ri-tag.nocode{color:var(--red);border-color:#ffcdd2;background:#fff5f3}
+
+/* SEARCH LINKS */
+.search-links-section{padding:10px 14px;border-bottom:1px solid var(--border)}
+.section-mini-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:7px}
+.link-row{display:flex;gap:6px;flex-wrap:wrap}
+.search-link{font-size:11px;padding:5px 11px;border-radius:7px;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);text-decoration:none;display:inline-flex;align-items:center;gap:4px;cursor:pointer;transition:all .15s}
+.search-link:hover{background:var(--bg4)}
+.link-naver:hover{border-color:#03c75a;color:#027a3a}
+.link-musinsa:hover{border-color:#444;color:#222}
+.link-zigzag:hover{border-color:#ff5a8a;color:#cc2255}
+.link-google:hover{border-color:var(--blue);color:var(--blue)}
+
+/* PHOTO UPLOAD */
+.photo-section{padding:10px 14px;border-bottom:1px solid var(--border)}
+.photo-row{display:flex;align-items:center;gap:10px}
+.photo-preview-box{width:56px;height:56px;border-radius:8px;border:1px solid var(--border2);overflow:hidden;flex-shrink:0;display:none}
+.photo-preview-box.visible{display:block}
+.photo-preview-box img{width:100%;height:100%;object-fit:cover}
+.photo-placeholder-box{width:56px;height:56px;border-radius:8px;border:1.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;flex-shrink:0;transition:all .15s}
+.photo-placeholder-box:hover{border-color:var(--accent2);background:rgba(176,120,48,.05)}
+.photo-placeholder-box.hidden{display:none}
+.photo-action-col{display:flex;flex-direction:column;gap:5px}
+.photo-pick-btn,.photo-rm-btn{font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:var(--font-body);transition:all .15s}
+.photo-pick-btn{border:1px solid var(--border2);background:var(--bg2);color:var(--text2)}
+.photo-pick-btn:hover{border-color:var(--accent2);color:var(--accent)}
+.photo-rm-btn{border:1px solid #ffcdd2;background:#fff5f3;color:var(--red);display:none}
+.photo-rm-btn.visible{display:block}
+.photo-file-inp{display:none}
+
+/* SEASON */
+.season-section{padding:10px 14px}
+.season-select-row{display:flex;gap:6px;flex-wrap:wrap}
+.season-sel{padding:5px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:12px;cursor:pointer;font-family:var(--font-body);transition:all .15s}
+.season-sel:hover{border-color:var(--accent2)}
+.season-sel.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* CONFIDENCE */
+.conf{font-size:10px;padding:2px 8px;border-radius:10px;margin-left:5px;vertical-align:middle}
+.conf-high{background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9}
+.conf-med{background:#fff8e1;color:#e65100;border:1px solid #ffecb3}
+.conf-low{background:#fde8e4;color:var(--red);border:1px solid #ffcdd2}
+
+.model-opt{cursor:pointer;display:block}
+.model-card{border:1.5px solid var(--border2);border-radius:10px;padding:12px 14px;background:var(--bg2);transition:all .15s}
+.model-opt:hover .model-card{border-color:var(--accent2)}
+.model-opt.active-opt .model-card{border-color:var(--accent);background:#fdf6ec}
+.model-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px}
+.model-desc{font-size:11px;color:var(--text3);margin-bottom:8px}
+.model-badge{font-size:10px;padding:3px 9px;border-radius:10px;display:inline-block}
+.model-badge.speed{background:#e8f0f8;color:var(--blue);border:1px solid #b0c8e8}
+.model-badge.accuracy{background:#fdf4e4;color:var(--accent2);border:1px solid #d8b880}
+.save-btn{width:100%;padding:13px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer;transition:all .2s}
+.save-btn:hover{background:var(--accent2)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg2);padding:10px 20px;border-radius:8px;font-size:13px;pointer-events:none;opacity:0;transition:opacity .3s;z-index:999}
+.toast.show{opacity:1}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3);grid-column:1/-1}
+.empty-icon{font-size:40px;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-logo">Wardrobe</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('dashboard')">대시보드</button>
+    <button class="nav-tab" onclick="showPage('wardrobe')">옷장</button>
+    <button class="nav-tab" onclick="showPage('upload')">영수증 추가</button>
+  </div>
+</div>
+
+<div class="page active" id="page-dashboard">
+  <div class="stats-row" id="stats-row"></div>
+  <div class="dash-grid">
+    <div class="panel"><div class="panel-title">카테고리 분포</div><div id="cat-bars"></div></div>
+    <div class="panel"><div class="panel-title">계절별</div><div class="season-grid" id="season-grid"></div></div>
+    <div class="panel"><div class="panel-title">브랜드 TOP 5</div><div id="brand-chart"></div></div>
+    <div class="panel"><div class="panel-title">안 입은 옷 정리 추천</div><div id="unworn-list"></div></div>
+  </div>
+</div>
+
+<div class="page" id="page-wardrobe">
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="setFilter('all',this)">전체</button>
+    <button class="filter-btn" onclick="setFilter('즐겨찾기',this)">⭐ 즐겨찾기</button>
+    <button class="filter-btn" onclick="setFilter('상의',this)">상의</button>
+    <button class="filter-btn" onclick="setFilter('하의',this)">하의</button>
+    <button class="filter-btn" onclick="setFilter('아우터',this)">아우터</button>
+    <button class="filter-btn" onclick="setFilter('신발',this)">신발</button>
+    <button class="filter-btn" onclick="setFilter('가방',this)">가방</button>
+    <button class="filter-btn" onclick="setFilter('봄',this)">🌸 봄</button>
+    <button class="filter-btn" onclick="setFilter('여름',this)">☀️ 여름</button>
+    <button class="filter-btn" onclick="setFilter('가을',this)">🍂 가을</button>
+    <button class="filter-btn" onclick="setFilter('겨울',this)">❄️ 겨울</button>
+    <input class="search-box" placeholder="검색..." oninput="renderWardrobe()" id="search-input">
+  </div>
+  <div class="clothes-grid" id="clothes-grid"></div>
+</div>
+
+<div class="page" id="page-upload">
+  <div class="upload-layout">
+    <div class="upload-panel">
+      <div class="panel-title" style="margin-bottom:14px">영수증 스캔</div>
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+        <div class="upload-icon-big">🧾</div>
+        <div class="upload-hint">영수증 사진을 올려주세요</div>
+        <div class="upload-hint2">클릭 또는 드래그&드롭 · JPG, PNG, HEIC</div>
+        <input type="file" id="file-input" accept="image/*">
+      </div>
+      <img id="preview-img" class="preview-img">
+      <div class="spinner-row" id="loading">
+        <div class="spin-inner"><div class="spin"></div><span>AI가 영수증 정밀 분석 중...</span></div>
+        <div class="analysis-step" id="analysis-step"></div>
+      </div>
+      <!-- 모델 선택 -->
+      <div id="model-selector" style="display:none;margin-top:14px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:8px">분석 엔진 선택</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <label class="model-opt active-opt" id="opt-gemini" onclick="selectModel('gemini',this)">
+            <div class="model-card">
+              <div class="model-name">Gemini 2.0</div>
+              <div class="model-desc">이미지 자동 검색 포함</div>
+              <div class="model-badge accuracy">🔍 이미지 자동</div>
+            </div>
+          </label>
+          <label class="model-opt" id="opt-claude" onclick="selectModel('claude',this)">
+            <div class="model-card">
+              <div class="model-name">Claude</div>
+              <div class="model-desc">코드·날짜 정밀 인식</div>
+              <div class="model-badge speed">⚡ 빠른 분석</div>
+            </div>
+          </label>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:8px;padding:8px 10px;background:var(--bg3);border-radius:6px;line-height:1.6">
+          💡 <b>Gemini</b>는 Google Search로 상품 이미지를 자동으로 불러옵니다. Gemini API 키가 필요해요 (aistudio.google.com에서 무료 발급)
+        </div>
+      </div>
+      <button class="analyze-btn" id="analyze-btn" style="display:none" onclick="analyzeReceipt()">AI로 정밀 분석하기 →</button>
+    </div>
+    <div class="result-panel" id="result-panel"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORE_KEY='wardrobe_v3';
+function load(){try{return JSON.parse(localStorage.getItem(STORE_KEY))||[]}catch{return[]}}
+function save(d){localStorage.setItem(STORE_KEY,JSON.stringify(d))}
+let db=load();
+
+const catEmoji={상의:'👕',하의:'👖',아우터:'🧥',신발:'👟',가방:'👜',액세서리:'💍',기타:'🎽'};
+const seasonEmoji={봄:'🌸',여름:'☀️',가을:'🍂',겨울:'❄️'};
+const colorMap={'블랙':'#1a1a1a','검정':'#1a1a1a','화이트':'#e8e8e8','흰색':'#e8e8e8','네이비':'#1B2A4A','블루':'#3B6FBF','파랑':'#3B6FBF','레드':'#C03020','빨강':'#C03020','그린':'#2E7D52','초록':'#2E7D52','베이지':'#C8B89A','카멜':'#B8884A','브라운':'#7B4F2E','카키':'#6B6B3B','그레이':'#888','회색':'#888','핑크':'#E880A0','옐로우':'#D0A020','노랑':'#D0A020','퍼플':'#7B52AB','오렌지':'#D07020','민트':'#3BBFAA','아이보리':'#D8C8A8','라벤더':'#A080C0'};
+function cHex(c){if(!c)return'#ccc';for(const[k,v]of Object.entries(colorMap))if(c.includes(k))return v;return'#ccc'}
+function fmt(n){return n!=null&&n!==0?Number(n).toLocaleString('ko-KR')+'원':'-'}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
+function nextId(){return db.length?Math.max(...db.map(x=>x.id))+1:1}
+function hexToRgb(h){if(!h||h.length<7)return'200,200,200';return`${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)}`}
+function setStep(msg){const el=document.getElementById('analysis-step');if(el)el.textContent=msg}
+function confBadge(c){if(!c)return'';const m={high:['conf-high','정확'],medium:['conf-med','추정'],low:['conf-low','불명확']};const[cls,txt]=m[c]||['conf-low','?'];return`<span class="conf ${cls}">${txt}</span>`}
+
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  const lbl={dashboard:'대시보드',wardrobe:'옷장',upload:'영수증'};
+  document.querySelectorAll('.nav-tab').forEach(t=>{if(t.textContent.includes(lbl[p]))t.classList.add('active')});
+  if(p==='dashboard')renderDash();
+  if(p==='wardrobe')renderWardrobe();
+}
+
+function renderDash(){
+  const total=db.length,totalVal=db.reduce((s,x)=>s+(x.price||0),0),favs=db.filter(x=>x.favorite).length,unworn=db.filter(x=>x.wearCount===0).length;
+  document.getElementById('stats-row').innerHTML=`
+    <div class="stat-card"><div class="stat-label">전체 의류</div><div class="stat-val">${total}</div><div class="stat-sub">아이템</div></div>
+    <div class="stat-card"><div class="stat-label">총 구매금액</div><div class="stat-val">${(totalVal/10000).toFixed(0)}만</div><div class="stat-sub">${fmt(totalVal)}</div></div>
+    <div class="stat-card"><div class="stat-label">즐겨찾기</div><div class="stat-val">${favs}</div><div class="stat-sub">아이템</div></div>
+    <div class="stat-card"><div class="stat-label">미착용</div><div class="stat-val" style="color:var(--red)">${unworn}</div><div class="stat-sub">정리 추천</div></div>`;
+  const cats=['상의','하의','아우터','신발','가방','액세서리','기타'],catCount={};
+  cats.forEach(c=>catCount[c]=0);db.forEach(x=>{const c=cats.includes(x.category)?x.category:'기타';catCount[c]=(catCount[c]||0)+1});
+  const maxC=Math.max(...Object.values(catCount),1);
+  const barColors={상의:'var(--blue)',하의:'var(--purple)',아우터:'var(--accent)',신발:'var(--green)',가방:'var(--red)',액세서리:'#d080a0',기타:'var(--text3)'};
+  document.getElementById('cat-bars').innerHTML=cats.filter(c=>catCount[c]>0).map(c=>`<div class="bar-row"><div class="bar-label">${catEmoji[c]} ${c}</div><div class="bar-track"><div class="bar-fill" style="width:${catCount[c]/maxC*100}%;background:${barColors[c]}"></div></div><div class="bar-count">${catCount[c]}</div></div>`).join('');
+  const sb={봄:'rgba(220,180,100,.1)',여름:'rgba(200,150,40,.1)',가을:'rgba(180,90,40,.1)',겨울:'rgba(80,120,190,.1)'};
+  document.getElementById('season-grid').innerHTML=['봄','여름','가을','겨울'].map(s=>`<div class="season-pill" style="background:${sb[s]}"><div class="season-icon">${seasonEmoji[s]}</div><div class="season-name">${s}</div><div class="season-count">${db.filter(x=>x.seasons&&x.seasons.includes(s)).length}</div></div>`).join('');
+  const bc={};db.forEach(x=>{if(x.brand)bc[x.brand]=(bc[x.brand]||0)+1});
+  const top5=Object.entries(bc).sort((a,b)=>b[1]-a[1]).slice(0,5);const maxB=top5[0]?top5[0][1]:1;
+  document.getElementById('brand-chart').innerHTML=top5.map(([b,n])=>`<div class="bar-row"><div class="bar-label" style="width:70px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b}</div><div class="bar-track"><div class="bar-fill" style="width:${n/maxB*100}%;background:var(--accent2)"></div></div><div class="bar-count">${n}</div></div>`).join('');
+  const ui=db.filter(x=>x.wearCount===0).slice(0,5);
+  document.getElementById('unworn-list').innerHTML=ui.length?ui.map(x=>`<div class="unworn-item"><div><div class="unworn-name">${x.name}</div><div class="unworn-date">${x.addedAt} · ${x.brand||''}</div></div><div class="unworn-badge">미착용</div></div>`).join(''):`<div style="color:var(--text3);font-size:13px;padding:12px 0">모든 옷을 착용하고 있어요 🎉</div>`;
+}
+
+let currentFilter='all';
+function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderWardrobe()}
+function renderWardrobe(){
+  const q=(document.getElementById('search-input').value||'').toLowerCase();
+  let items=db.filter(x=>{
+    if(currentFilter==='all')return true;
+    if(currentFilter==='즐겨찾기')return x.favorite;
+    if(['봄','여름','가을','겨울'].includes(currentFilter))return x.seasons&&x.seasons.includes(currentFilter);
+    return x.category===currentFilter;
+  }).filter(x=>!q||x.name.toLowerCase().includes(q)||(x.brand||'').toLowerCase().includes(q)||(x.code||'').toLowerCase().includes(q));
+  const grid=document.getElementById('clothes-grid');
+  if(!items.length){grid.innerHTML=`<div class="empty-state"><div class="empty-icon">👗</div><div>해당하는 옷이 없어요</div></div>`;return}
+  grid.innerHTML=items.map(x=>`
+    <div class="cloth-card${x.favorite?' favorited':''}">
+      <div class="cloth-thumb" style="background:rgba(${hexToRgb(cHex(x.color))},.12)">
+        ${x.photo?`<img src="${x.photo}" alt="${x.name}">`:`<span class="cloth-thumb-emoji">${catEmoji[x.category]||'🎽'}</span>`}
+        <button class="fav-btn${x.favorite?' on':''}" onclick="toggleFav(${x.id},event)">${x.favorite?'⭐':'☆'}</button>
+      </div>
+      <div class="cloth-body">
+        <div class="cloth-name">${x.name}</div>
+        <div class="cloth-brand">${x.brand||''} ${x.size?'· '+x.size:''}</div>
+        <div class="cloth-tags">
+          ${x.color?`<span class="tag color-tag"><span class="cdot" style="background:${cHex(x.color)}"></span>${x.color}</span>`:''}
+          ${(x.seasons||[]).map(s=>`<span class="tag">${seasonEmoji[s]}${s}</span>`).join('')}
+          ${x.code?`<span class="tag" style="font-family:monospace;color:var(--blue);font-size:10px">#${x.code}</span>`:''}
+        </div>
+        <div class="cloth-bottom">
+          <div class="cloth-price">${fmt(x.price)}</div>
+          <div class="wear-row">
+            <span class="wear-count" style="color:${x.wearCount===0?'var(--red)':'var(--text2)'}">${x.wearCount}회</span>
+            <button class="wear-btn" onclick="addWear(${x.id},event)">+착용</button>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function toggleFav(id,e){e.stopPropagation();const i=db.find(x=>x.id===id);if(i){i.favorite=!i.favorite;save(db);renderWardrobe()}}
+function addWear(id,e){e.stopPropagation();const i=db.find(x=>x.id===id);if(i){i.wearCount=(i.wearCount||0)+1;save(db);renderWardrobe();toast(`${i.name} 착용 기록 (${i.wearCount}회)`)}}
+
+// ── GEMINI KEY ──
+let GEMINI_KEY = localStorage.getItem('gemini_api_key') || 'AIzaSyA6W_eF3Y2lmgzT2IrgBunnK8eblVEVHKg';
+
+function getGeminiKey(){
+  if(GEMINI_KEY) return GEMINI_KEY;
+  // show key input UI instead of blocking prompt()
+  showKeyInput();
+  return null;
+}
+
+function showKeyInput(){
+  const rp=document.getElementById('result-panel');
+  rp.style.display='block';
+  rp.innerHTML=`
+    <div style="padding:24px">
+      <div style="font-family:var(--font-display);font-size:18px;color:var(--accent);margin-bottom:6px">Gemini API 키 입력</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:16px">aistudio.google.com → Get API key에서 무료 발급</div>
+      <input id="gemini-key-input" type="text" placeholder="AIza..." 
+        style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:13px;outline:none;margin-bottom:10px">
+      <button onclick="saveGeminiKey()" 
+        style="width:100%;padding:11px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:500;cursor:pointer">
+        저장하고 분석 시작 →
+      </button>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">키는 이 기기에만 저장되며 외부로 전송되지 않습니다</div>
+    </div>`;
+}
+
+function saveGeminiKey(){
+  const val = document.getElementById('gemini-key-input')?.value?.trim();
+  if(!val){return;}
+  GEMINI_KEY = val;
+  localStorage.setItem('gemini_api_key', val);
+  document.getElementById('result-panel').style.display='none';
+  toast('✓ Gemini API 키 저장 완료 — 다시 분석 버튼을 눌러주세요');
+}
+
+// SEARCH LINK BUILDER (fallback)
+function buildLinks(brand,code,name){
+  const q=encodeURIComponent([brand,code||name].filter(Boolean).join(' ').trim());
+  const qn=encodeURIComponent([brand,name].filter(Boolean).join(' ').trim());
+  return[
+    {cls:'link-naver',label:'네이버쇼핑',url:`https://search.shopping.naver.com/search/all?query=${q}`},
+    {cls:'link-musinsa',label:'무신사',url:`https://www.musinsa.com/search/musinsa/integrated?q=${q}`},
+    {cls:'link-zigzag',label:'지그재그',url:`https://zigzag.kr/search?q=${qn}`},
+    {cls:'link-google',label:'구글',url:`https://www.google.com/search?q=${q}+패션`},
+  ];
+}
+
+// UPLOAD
+let imgB64=null,imgMime='image/jpeg',imgDataUrl=null,pendingItems=[];
+const uz=document.getElementById('upload-zone'),fi=document.getElementById('file-input'),pi=document.getElementById('preview-img'),ab=document.getElementById('analyze-btn'),ld=document.getElementById('loading');
+uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag')});
+uz.addEventListener('dragleave',()=>uz.classList.remove('drag'));
+uz.addEventListener('drop',e=>{e.preventDefault();uz.classList.remove('drag');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0])});
+fi.addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0])});
+
+function handleFile(f){
+  imgMime=f.type||'image/jpeg';
+  const r=new FileReader();
+  r.onload=ev=>{
+    imgDataUrl=ev.target.result;
+    imgB64=imgDataUrl.split(',')[1];
+    pi.src=imgDataUrl;pi.style.display='block';
+    ab.style.display='block';
+    document.getElementById('model-selector').style.display='block';
+    document.getElementById('result-panel').style.display='none';
+  };
+  r.readAsDataURL(f);
+}
+
+let selectedModel='gemini'; // 'gemini' | 'claude'
+function selectModel(m, el){
+  selectedModel=m;
+  document.querySelectorAll('.model-opt').forEach(x=>x.classList.remove('active-opt'));
+  el.classList.add('active-opt');
+}
+
+async function analyzeReceipt(){
+  if(!imgB64) return;
+  ab.disabled=true; ld.style.display='flex';
+  try{
+    if(selectedModel==='gemini'){
+      await analyzeWithGemini();
+    } else {
+      await analyzeWithClaude();
+    }
+  }catch(e){console.error(e);}
+  ld.style.display='none'; ab.disabled=false;
+}
+
+// ── GEMINI 분석 (AI Studio 로직 이식) ──
+async function analyzeWithGemini(){
+  const key = getGeminiKey();
+  if(!key){toast('Gemini API 키가 필요합니다');return;}
+
+  setStep('Gemini가 영수증 분석 중...');
+  try{
+    // Step 1: 영수증 OCR + 정보 추출
+    const analysisRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+      { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          contents:[{ parts:[
+            { text:`이 영수증 이미지를 분석하여 의류 구매 정보를 추출해주세요.
+특히 상품 코드(SKU, 모델 번호, 스타일 번호 등)가 있다면 반드시 추출해주세요.
+결과는 반드시 JSON 형식으로 반환해야 합니다.
+추출할 정보:
+- items: 각 상품의 이름(name), 색상(color), 사이즈(size), 가격(price), 카테고리(category), 상품코드(productCode)
+- totalAmount: 총 결제 금액 (숫자)
+- purchaseDate: 구매 일자 (YYYY-MM-DD 형식)
+- storeName: 매장 이름
+- paymentMethod: 결제 수단
+JSON만 반환, 다른 텍스트 없이.` },
+            { inlineData:{ mimeType: imgMime, data: imgB64 }}
+          ]}],
+          generationConfig:{ responseMimeType:'application/json' }
+        })
+      }
+    );
+    const analysisData = await analysisRes.json();
+    const raw = analysisData.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+
+    // Claude 앱 포맷으로 변환
+    const converted = {
+      store: parsed.storeName || '',
+      purchase_date: parsed.purchaseDate || '',
+      payment_method: parsed.paymentMethod || '',
+      receipt_number: null,
+      confidence: 'high',
+      subtotal: parsed.totalAmount || 0,
+      discount: 0,
+      total: parsed.totalAmount || 0,
+      items: (parsed.items||[]).map(it=>({
+        name: it.name, brand: parsed.storeName,
+        item_code: it.productCode||null,
+        category: mapCategory(it.category),
+        color: it.color||null, size: it.size||null,
+        quantity:1, unit_price: it.price, total_price: it.price,
+        confidence:'high', imageUrl:null, searchUrl:null
+      }))
+    };
+
+    renderResult(converted);
+    setStep('');
+
+    // Step 2: 상품 이미지 Google Search로 자동 로딩
+    if(converted.items.length > 0){
+      searchImagesWithGemini(converted, key);
+    }
+
+  } catch(e){
+    console.error(e);
+    setStep('');
+    toast('Gemini 분석 오류 — API 키를 확인하거나 Claude로 재시도해보세요');
+  }
+}
+
+function mapCategory(c){
+  if(!c) return '기타';
+  const cl = c.toLowerCase();
+  if(cl.includes('top')||cl.includes('shirt')||cl.includes('blouse')||cl.includes('상의')||cl.includes('티')) return '상의';
+  if(cl.includes('pant')||cl.includes('skirt')||cl.includes('jean')||cl.includes('하의')||cl.includes('바지')||cl.includes('스커트')) return '하의';
+  if(cl.includes('jacket')||cl.includes('coat')||cl.includes('outer')||cl.includes('아우터')) return '아우터';
+  if(cl.includes('shoe')||cl.includes('sneaker')||cl.includes('신발')||cl.includes('슈즈')) return '신발';
+  if(cl.includes('bag')||cl.includes('가방')) return '가방';
+  if(cl.includes('acc')||cl.includes('액세서리')) return '액세서리';
+  return '기타';
+}
+
+// ── GEMINI 이미지 검색 (AI Studio 핵심 로직) ──
+async function searchImagesWithGemini(data, key){
+  const isHM = (data.store||'').toUpperCase().includes('H&M') || (data.store||'').includes('에이치앤엠');
+
+  for(let i=0; i<pendingItems.length; i++){
+    const item = pendingItems[i];
+    setStep(`이미지 검색 중... (${i+1}/${pendingItems.length})`);
+    try{
+      const brandTarget = isHM
+        ? 'H&M Korea 공식 온라인 스토어 hm.com/ko_kr'
+        : `${data.store} Korea 공식몰`;
+      const searchQuery = `${brandTarget} ${item.name} ${item.item_code||''} 의류 제품 상세 이미지`;
+
+      const searchRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+        { method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            contents:[{ parts:[{ text:`당신은 패션 전문 검색 어시스턴트입니다. 다음 상품에 대한 정보를 공식 사이트에서 찾아주세요: "${searchQuery}".
+반드시 다음 정보를 포함한 JSON을 반환하세요:
+1. imageUrl: 해당 옷의 제품 사진 또는 모델 착용 사진의 직접 링크
+2. searchUrl: 해당 브랜드 공식 상품 상세 페이지 URL
+JSON만 반환.` }]}],
+            tools:[{ googleSearch:{} }],
+            generationConfig:{ responseMimeType:'application/json' }
+          })
+        }
+      );
+      const searchData = await searchRes.json();
+      const sRaw = searchData.candidates?.[0]?.content?.parts?.[0]?.text||'{}';
+      const sResult = JSON.parse(sRaw.replace(/```json|```/g,'').trim());
+
+      // groundingChunks에서 공식몰 링크 우선 선택
+      const chunks = searchData.candidates?.[0]?.groundingMetadata?.groundingChunks||[];
+      let bestLink = sResult.searchUrl;
+      if(chunks.length){
+        const official = chunks.find(c=>c.web?.uri?.includes(encodeURIComponent(data.store).toLowerCase())||c.web?.uri?.includes((data.store||'').toLowerCase().replace(/\s/g,'')));
+        bestLink = official?.web?.uri || chunks[0]?.web?.uri || bestLink;
+      }
+
+      item.imageUrl = sResult.imageUrl || null;
+      item.searchUrl = bestLink || null;
+
+      // 결과 패널 이미지 실시간 업데이트
+      const imgEl = document.getElementById(`item-img-${i}`);
+      const linkEl = document.getElementById(`item-link-${i}`);
+      if(imgEl && item.imageUrl){
+        imgEl.src = item.imageUrl;
+        imgEl.style.display='block';
+        imgEl.previousElementSibling && (imgEl.previousElementSibling.style.display='none');
+      }
+      if(linkEl && item.searchUrl){
+        linkEl.href = item.searchUrl;
+        linkEl.style.display='inline-flex';
+      }
+
+    } catch(e){ console.error('Image search error:',e); }
+  }
+  setStep('');
+  toast('✓ 이미지 검색 완료');
+}
+
+// ── CLAUDE 분석 (fallback) ──
+async function analyzeWithClaude(){
+  setStep('Claude가 영수증 분석 중...');
+  const prompt=`당신은 패션 영수증 전문 분석 AI입니다. 이 영수증 이미지를 매우 꼼꼼하게 분석하여 정보를 추출해 주세요.
+[추출 규칙]
+- 날짜: YYYY-MM-DD 형식 변환
+- 브랜드: 원문 그대로 (대소문자 유지)
+- 금액: 숫자만
+- 상품코드: 품번/SKU/바코드 등 가장 구체적인 코드
+- 색상: 한글로 (BLK→블랙, WHT→화이트 등)
+- 사이즈: 그대로
+- 카테고리: [상의/하의/아우터/신발/가방/액세서리/기타] 중 선택
+JSON만 반환:
+{"store":"매장명","purchase_date":"YYYY-MM-DD","receipt_number":null,"payment_method":"결제수단","confidence":"high","items":[{"name":"상품명","brand":"브랜드","item_code":"품번","category":"카테고리","color":"색상","size":"사이즈","quantity":1,"unit_price":단가,"total_price":합계,"confidence":"high"}],"subtotal":소계,"discount":0,"total":합계}`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:imgMime,data:imgB64}},
+          {type:'text',text:prompt}
+        ]}]
+      })
+    });
+    const data=await res.json();
+    const raw=data.content.map(c=>c.text||'').join('');
+    const parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    setStep('');
+    renderResult(parsed);
+  }catch(e){
+    setStep('');toast('분석 오류 — 영수증이 선명한지 확인 후 다시 시도해주세요');
+  }
+}
+
+function renderResult(d){
+  pendingItems=(d.items||[]).map(x=>({...x,_seasons:[],_photo:null,imageUrl:x.imageUrl||null,searchUrl:x.searchUrl||null}));
+  const rp=document.getElementById('result-panel');rp.style.display='block';
+  rp.innerHTML=`
+    <div class="result-title">${d.store||'영수증'} ${confBadge(d.confidence)}</div>
+    <div class="result-sub">${d.purchase_date||'날짜 미인식'} · ${d.payment_method||''} · No.${d.receipt_number||'—'}</div>
+    <div class="meta-rows">
+      <div class="meta-row-r"><span class="mk">소계</span><span class="mv">${fmt(d.subtotal)}</span></div>
+      ${d.discount?`<div class="meta-row-r"><span class="mk">할인</span><span class="mv" style="color:var(--red)">-${fmt(d.discount)}</span></div>`:''}
+      <div class="meta-row-r"><span class="mk">최종 합계</span><span class="mv" style="color:var(--accent)">${fmt(d.total)}</span></div>
+    </div>
+    <div class="result-items">
+      ${pendingItems.map((item,i)=>`
+        <div class="ri">
+          <div class="ri-header">
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <!-- 상품 이미지 썸네일 -->
+              <div style="width:72px;height:72px;border-radius:8px;overflow:hidden;flex-shrink:0;border:1px solid var(--border2);background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:24px;position:relative" id="item-img-wrap-${i}">
+                <span>${catEmoji[item.category]||'🎽'}</span>
+                <img id="item-img-${i}" src="${item.imageUrl||''}" alt="${item.name}"
+                  style="width:100%;height:100%;object-fit:cover;display:${item.imageUrl?'block':'none'};position:absolute;top:0;left:0"
+                  onerror="this.style.display='none'"
+                  referrerpolicy="no-referrer">
+              </div>
+              <div style="flex:1;min-width:0">
+                <div class="ri-top">
+                  <span class="ri-name">${item.name} ${confBadge(item.confidence)}</span>
+                  <span class="ri-price">${fmt(item.total_price)}</span>
+                </div>
+                <div class="ri-attrs">
+                  ${item.brand?`<span class="ri-tag brand-tag">🏷 ${item.brand}</span>`:''}
+                  ${item.category?`<span class="ri-tag">${catEmoji[item.category]||''} ${item.category}</span>`:''}
+                  ${item.color?`<span class="ri-tag" style="display:inline-flex;align-items:center;gap:4px"><span class="cdot" style="background:${cHex(item.color)}"></span>${item.color}</span>`:''}
+                  ${item.size?`<span class="ri-tag">SIZE ${item.size}</span>`:''}
+                  ${item.item_code?`<span class="ri-tag code-tag">📦 ${item.item_code}</span>`:`<span class="ri-tag nocode">코드 미인식</span>`}
+                </div>
+                ${item.searchUrl?`<a id="item-link-${i}" href="${item.searchUrl}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--blue);margin-top:6px;text-decoration:none">🔗 상품 페이지 바로가기</a>`:`<a id="item-link-${i}" style="display:none"></a>`}
+              </div>
+            </div>
+          </div>
+          <div class="search-links-section">
+            <div class="section-mini-label">수동 검색 링크</div>
+            <div class="link-row">
+              ${buildLinks(item.brand||d.store,item.item_code,item.name).map(l=>`<a class="search-link ${l.cls}" href="${l.url}" target="_blank" rel="noopener">${l.label}</a>`).join('')}
+            </div>
+          </div>
+          <div class="photo-section">
+            <div class="section-mini-label">상품 사진 직접 추가</div>
+            <div class="photo-row">
+              <div class="photo-placeholder-box" id="ph-ph-${i}" onclick="document.getElementById('ph-fi-${i}').click()">📷</div>
+              <div class="photo-preview-box" id="ph-pb-${i}"><img id="ph-img-${i}" src="" alt=""></div>
+              <div class="photo-action-col">
+                <button class="photo-pick-btn" onclick="document.getElementById('ph-fi-${i}').click()">사진 선택</button>
+                <button class="photo-rm-btn" id="ph-rm-${i}" onclick="removePhoto(${i})">제거</button>
+              </div>
+              <input type="file" accept="image/*" class="photo-file-inp" id="ph-fi-${i}" onchange="handlePhotoUpload(${i},this)">
+            </div>
+          </div>
+          <div class="season-section">
+            <div class="section-mini-label">계절 선택</div>
+            <div class="season-select-row">
+              ${['봄','여름','가을','겨울'].map(s=>`<button class="season-sel" onclick="toggleSeason(${i},'${s}',this)">${seasonEmoji[s]} ${s}</button>`).join('')}
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>
+    <button class="save-btn" onclick="saveAll()">옷장에 저장하기 →</button>`;
+}
+
+function handlePhotoUpload(i,inp){
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    pendingItems[i]._photo=ev.target.result;
+    document.getElementById('ph-img-'+i).src=ev.target.result;
+    document.getElementById('ph-pb-'+i).classList.add('visible');
+    document.getElementById('ph-ph-'+i).classList.add('hidden');
+    document.getElementById('ph-rm-'+i).classList.add('visible');
+  };
+  r.readAsDataURL(f);
+}
+function removePhoto(i){
+  pendingItems[i]._photo=null;
+  document.getElementById('ph-img-'+i).src='';
+  document.getElementById('ph-pb-'+i).classList.remove('visible');
+  document.getElementById('ph-ph-'+i).classList.remove('hidden');
+  document.getElementById('ph-rm-'+i).classList.remove('visible');
+}
+function toggleSeason(i,s,btn){
+  const arr=pendingItems[i]._seasons;const idx=arr.indexOf(s);
+  if(idx>-1){arr.splice(idx,1);btn.classList.remove('on')}else{arr.push(s);btn.classList.add('on')}
+}
+function saveAll(){
+  if(!pendingItems.length)return;
+  pendingItems.forEach(item=>{
+    db.push({id:nextId(),name:item.name,brand:item.brand||null,category:item.category||'기타',
+      color:item.color||null,size:item.size||null,seasons:item._seasons||[],
+      price:item.total_price||0,code:item.item_code||null,
+      favorite:false,wearCount:0,addedAt:new Date().toISOString().slice(0,10),photo:item._photo||null});
+  });
+  save(db);toast(`✓ ${pendingItems.length}개 아이템 저장 완료`);
+  document.getElementById('result-panel').style.display='none';
+  pi.style.display='none';ab.style.display='none';imgB64=null;fi.value='';
+  setTimeout(()=>showPage('wardrobe'),900);
+}
+
+// ── INIT ──
+// 샘플 데이터가 없을 때만 삽입
+if(db.length===0){
+  db=[
+    {id:1,name:'오버핏 셔츠',brand:'ZARA',category:'상의',color:'화이트',size:'M',seasons:['봄','여름'],price:39000,code:'ZR-2024-001',favorite:true,wearCount:5,addedAt:'2024-03-10',photo:null},
+    {id:2,name:'와이드 데님',brand:'Levis',category:'하의',color:'블루',size:'28',seasons:['봄','가을'],price:89000,code:'LV-501-28',favorite:false,wearCount:12,addedAt:'2024-02-20',photo:null},
+    {id:3,name:'울 코트',brand:'COS',category:'아우터',color:'카멜',size:'S',seasons:['가을','겨울'],price:189000,code:'COS-3392',favorite:true,wearCount:2,addedAt:'2023-11-05',photo:null},
+    {id:4,name:'크롭 맨투맨',brand:'NIKE',category:'상의',color:'그레이',size:'M',seasons:['가을','겨울'],price:59000,code:'NK-CW-009',favorite:false,wearCount:0,addedAt:'2023-12-15',photo:null},
+    {id:5,name:'미니 스커트',brand:'H&M',category:'하의',color:'블랙',size:'S',seasons:['여름'],price:29000,code:'HM-SK-22',favorite:false,wearCount:0,addedAt:'2024-01-08',photo:null},
+    {id:6,name:'스니커즈',brand:'New Balance',category:'신발',color:'화이트',size:'250',seasons:['봄','여름','가을'],price:129000,code:'NB-574-W',favorite:true,wearCount:30,addedAt:'2023-09-01',photo:null},
+    {id:7,name:'레더 쇼퍼백',brand:'MANGO',category:'가방',color:'브라운',size:null,seasons:['봄','가을','겨울'],price:79000,code:'MG-BAG-44',favorite:false,wearCount:8,addedAt:'2024-01-20',photo:null},
+    {id:8,name:'린넨 팬츠',brand:'UNIQLO',category:'하의',color:'베이지',size:'S',seasons:['봄','여름'],price:39900,code:'UQ-LP-02',favorite:false,wearCount:1,addedAt:'2024-04-01',photo:null},
+  ];
+  save(db);
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  renderDash();
+  renderWardrobe();
+});
+</script>
+</body>
+</html>
